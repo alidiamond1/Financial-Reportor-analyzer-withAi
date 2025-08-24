@@ -59,8 +59,8 @@ Before running this project, make sure you have:
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
-cd financial-report-analyzer
+git clone https://github.com/alidiamond1/Financial-Reportor-analyzer-withAi.git
+cd Financial-Reportor-analyzer-withAi
 ```
 
 ### 2. Install Dependencies
@@ -289,7 +289,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - **Documentation**: Check this README and code comments
 - **Issues**: Create a GitHub issue for bugs
-- **Email**: support@financialanalyzer.com
+- **Email**: Calilucky3@gmail.com
 - **Discord**: Join our community server
 
 ## 🗺 Roadmap
@@ -308,4 +308,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-**Built with ❤️ by the Financial Analyzer Team**
+**Built with ❤️ by Alidiamond**
