@@ -33,9 +33,6 @@ module.exports = {
           900: '#14532d',
         }
       },
-      fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-      },
     },
   },
   plugins: [],

@@ -1,9 +1,19 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const router = useRouter();
+
+  const handleSignIn = () => {
+    router.push('/auth');
+  };
+
+  const handleStartFree = () => {
+    router.push('/auth');
+  };
 
   const navItems = [
     { name: 'Features', href: '#features' },
@@ -37,10 +47,16 @@ export default function Navigation() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center space-x-4">
-            <button className="text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg transition-colors duration-300">
+            <button 
+              onClick={handleSignIn}
+              className="text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg transition-colors duration-300"
+            >
               Sign In
             </button>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-300">
+            <button 
+              onClick={handleStartFree}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-300"
+            >
               Start Free
             </button>
           </div>
@@ -74,10 +90,16 @@ export default function Navigation() {
                 </a>
               ))}
               <div className="pt-4 border-t border-gray-200 space-y-2">
-                <button className="block w-full text-left text-gray-600 hover:text-gray-900 py-2">
+                <button 
+                  onClick={handleSignIn}
+                  className="block w-full text-left text-gray-600 hover:text-gray-900 py-2"
+                >
                   Sign In
                 </button>
-                <button className="block w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-300">
+                <button 
+                  onClick={handleStartFree}
+                  className="block w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-300"
+                >
                   Start Free
                 </button>
               </div>
