@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase, STORAGE_BUCKETS, TABLES } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
+import { STORAGE_BUCKETS, TABLES } from '@/lib/supabase';
 import { authenticateRequest, checkUploadLimit, checkRateLimit } from '@/lib/auth';
 import { ApiResponse, FileUploadResponse } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
@@ -77,8 +78,28 @@ export async function POST(request: NextRequest) {
     const fileExtension = file.name.split('.').pop();
     const storagePath = `${user.id}/${fileId}.${fileExtension}`;
 
-    // Upload file to Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    // Create authenticated Supabase client with user's session
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+    
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey);
+    
+    // Get the auth token from request headers
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json<ApiResponse>({
+        success: false,
+        error: 'Invalid authorization header'
+      }, { status: 401 });
+    }
+    
+    const token = authHeader.substring(7);
+    
+    // Set the auth session for Supabase client
+    await supabaseAuth.auth.setSession({ access_token: token, refresh_token: '' });
+
+    // Upload file to Supabase Storage using the authenticated client
+    const { data: uploadData, error: uploadError } = await supabaseAuth.storage
       .from(STORAGE_BUCKETS.FILES)
       .upload(storagePath, file, {
         cacheControl: '3600',
@@ -103,8 +124,8 @@ export async function POST(request: NextRequest) {
       fileType = 'csv';
     }
 
-    // Save file metadata to database
-    const { data: fileRecord, error: dbError } = await supabase
+    // Save file metadata to database using authenticated client
+    const { data: fileRecord, error: dbError } = await supabaseAuth
       .from(TABLES.FILES)
       .insert({
         id: fileId,
@@ -122,7 +143,7 @@ export async function POST(request: NextRequest) {
       console.error('Database insert error:', dbError);
       
       // Clean up uploaded file if database insert fails
-      await supabase.storage
+      await supabaseAuth.storage
         .from(STORAGE_BUCKETS.FILES)
         .remove([storagePath]);
 
@@ -133,7 +154,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Increment user upload count
-    await supabase.rpc('increment_upload_count', { user_uuid: user.id });
+    await supabaseAuth.rpc('increment_upload_count', { user_uuid: user.id });
 
     // Return success response
     const response: FileUploadResponse = {
@@ -171,6 +192,18 @@ export async function GET(request: NextRequest) {
     const user = authResult.user;
     const { searchParams } = new URL(request.url);
     
+    // Create authenticated Supabase client
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey);
+    
+    // Get the auth token from request headers
+    const authHeader = request.headers.get('authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      await supabaseAuth.auth.setSession({ access_token: token, refresh_token: '' });
+    }
+    
     // Parse query parameters
     const page = parseInt(searchParams.get('page') || '1');
     const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 50);
@@ -180,7 +213,7 @@ export async function GET(request: NextRequest) {
     const offset = (page - 1) * limit;
 
     // Build query
-    let query = supabase
+    let query = supabaseAuth
       .from(TABLES.FILES)
       .select('*', { count: 'exact' })
       .eq('user_id', user.id)
